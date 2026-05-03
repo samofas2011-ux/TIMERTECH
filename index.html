@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>¡Tiempo de Pantalla! ⏱️</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;900&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --bg: #0f1117;
+    --surface: #1a1d2e;
+    --surface2: #252840;
+    --accent: #6c63ff;
+    --accent2: #ff6584;
+    --accent3: #43e97b;
+    --accent4: #f9ca24;
+    --text: #f0f0ff;
+    --text2: #9999bb;
+    --radius: 20px;
+    --radius-sm: 12px;
+  }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 24px 16px 48px;
+    overflow-x: hidden;
+  }
+
+  /* Stars bg */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      radial-gradient(1px 1px at 10% 15%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 30% 40%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 55% 10%, rgba(255,255,255,0.5) 0%, transparent 100%),
+      radial-gradient(1px 1px at 70% 60%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 85% 25%, rgba(255,255,255,0.4) 0%, transparent 100%),
+      radial-gradient(1px 1px at 20% 75%, rgba(255,255,255,0.3) 0%, transparent 100%),
+      radial-gradient(1px 1px at 90% 80%, rgba(255,255,255,0.2) 0%, transparent 100%),
+      radial-gradient(1px 1px at 40% 90%, rgba(255,255,255,0.3) 0%, transparent 100%);
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .container {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    max-width: 560px;
+  }
+
+  /* HEADER */
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+  }
+  .header-emoji {
+    font-size: 48px;
+    display: block;
+    margin-bottom: 8px;
+    animation: float 3s ease-in-out infinite;
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+  .header h1 {
+    font-size: 36px;
+    font-weight: 900;
+    background: linear-gradient(135deg, #6c63ff, #ff6584);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 4px;
+  }
+  .header p {
+    color: var(--text2);
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  /* BIG TIMER */
+  .timer-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 32px 24px;
+    margin-bottom: 20px;
+    border: 2px solid var(--surface2);
+    position: relative;
+    overflow: hidden;
+  }
+  .timer-card::before {
+    content: '';
+    position: absolute;
+    top: -60px; right: -60px;
+    width: 180px; height: 180px;
+    background: radial-gradient(circle, rgba(108,99,255,0.15), transparent 70%);
+    border-radius: 50%;
+  }
+
+  .progress-ring-wrap {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: relative;
+  }
+  .ring-svg {
+    transform: rotate(-90deg);
+    filter: drop-shadow(0 0 12px rgba(108,99,255,0.4));
+  }
+  .ring-bg { fill: none; stroke: var(--surface2); stroke-width: 12; }
+  .ring-progress {
+    fill: none;
+    stroke-width: 12;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease, stroke 0.5s ease;
+  }
+  .ring-text {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .time-display {
+    font-family: 'Space Mono', monospace;
+    font-size: 52px;
+    font-weight: 700;
+    letter-spacing: -2px;
+    line-height: 1;
+    color: var(--text);
+    transition: color 0.3s;
+  }
+  .time-display.warning { color: var(--accent4); }
+  .time-display.danger { color: var(--accent2); animation: pulse 0.8s ease-in-out infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.6; } }
+
+  .session-label {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--text2);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    margin-top: 6px;
+  }
+
+  /* Controls */
+  .controls {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 20px;
+  }
+  .btn {
+    font-family: 'Nunito', sans-serif;
+    font-size: 16px;
+    font-weight: 900;
+    padding: 14px 28px;
+    border-radius: 50px;
+    border: none;
+    cursor: pointer;
+    transition: transform 0.15s, box-shadow 0.15s, opacity 0.15s;
+    letter-spacing: 0.5px;
+  }
+  .btn:active { transform: scale(0.95); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn-primary {
+    background: linear-gradient(135deg, #6c63ff, #8b5cf6);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(108,99,255,0.4);
+  }
+  .btn-primary:hover:not(:disabled) { box-shadow: 0 6px 28px rgba(108,99,255,0.6); }
+  .btn-danger {
+    background: linear-gradient(135deg, #ff6584, #e5404a);
+    color: #fff;
+    box-shadow: 0 4px 20px rgba(255,101,132,0.3);
+  }
+  .btn-success {
+    background: linear-gradient(135deg, #43e97b, #38f9d7);
+    color: #0f1117;
+    box-shadow: 0 4px 20px rgba(67,233,123,0.3);
+  }
+  .btn-ghost {
+    background: var(--surface2);
+    color: var(--text2);
+  }
+  .btn-ghost:hover:not(:disabled) { background: #2f3355; color: var(--text); }
+
+  /* Daily budget bar */
+  .budget-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    margin-bottom: 20px;
+    border: 2px solid var(--surface2);
+  }
+  .budget-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  .budget-header span:first-child {
+    font-weight: 800;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text2);
+  }
+  .budget-header span:last-child {
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--accent3);
+  }
+  .budget-bar-bg {
+    background: var(--surface2);
+    border-radius: 50px;
+    height: 14px;
+    overflow: hidden;
+  }
+  .budget-bar-fill {
+    height: 100%;
+    border-radius: 50px;
+    background: linear-gradient(90deg, #43e97b, #6c63ff);
+    transition: width 0.5s ease;
+    position: relative;
+  }
+  .budget-bar-fill.low { background: linear-gradient(90deg, #f9ca24, #ff6584); }
+
+  /* Sessions setup */
+  .sessions-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 2px solid var(--surface2);
+  }
+  .sessions-card h2 {
+    font-size: 18px;
+    font-weight: 900;
+    margin-bottom: 6px;
+  }
+  .sessions-card .subtitle {
+    font-size: 13px;
+    color: var(--text2);
+    margin-bottom: 20px;
+    font-weight: 600;
+  }
+
+  .sessions-list { display: flex; flex-direction: column; gap: 10px; }
+  .session-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    transition: background 0.2s;
+  }
+  .session-item.active-session { background: #1e2050; border: 1.5px solid var(--accent); }
+  .session-item.done-session { opacity: 0.5; }
+  .session-icon {
+    font-size: 22px;
+    min-width: 32px;
+    text-align: center;
+  }
+  .session-info { flex: 1; }
+  .session-name {
+    font-weight: 800;
+    font-size: 14px;
+    color: var(--text);
+  }
+  .session-mins {
+    font-size: 12px;
+    color: var(--text2);
+    font-weight: 600;
+  }
+  .session-status {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    padding: 4px 10px;
+    border-radius: 50px;
+  }
+  .status-pending { background: var(--surface); color: var(--text2); }
+  .status-active { background: rgba(108,99,255,0.2); color: #a9a4ff; }
+  .status-done { background: rgba(67,233,123,0.15); color: #43e97b; }
+
+  /* Session editor */
+  .edit-card {
+    background: var(--surface);
+    border-radius: var(--radius);
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 2px dashed var(--surface2);
+  }
+  .edit-card h2 {
+    font-size: 17px;
+    font-weight: 900;
+    margin-bottom: 16px;
+    color: var(--text2);
+  }
+  .session-builder { display: flex; flex-direction: column; gap: 12px; }
+  .builder-row {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 10px 14px;
+  }
+  .builder-row .icon-btn {
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 2px;
+    border-radius: 6px;
+    transition: transform 0.1s;
+  }
+  .builder-row .icon-btn:hover { transform: scale(1.2); }
+  .builder-emoji { font-size: 22px; }
+  .builder-input {
+    flex: 1;
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 6px 10px;
+    color: var(--text);
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+  }
+  .builder-input:focus { outline: none; border-color: var(--accent); }
+  .mins-input {
+    width: 60px;
+    background: rgba(255,255,255,0.07);
+    border: 1.5px solid rgba(255,255,255,0.1);
+    border-radius: 8px;
+    padding: 6px 8px;
+    color: var(--accent3);
+    font-family: 'Space Mono', monospace;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: center;
+  }
+  .mins-input:focus { outline: none; border-color: var(--accent3); }
+  .mins-label { font-size: 12px; color: var(--text2); font-weight: 700; }
+
+  .total-check {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: var(--surface2);
+    border-radius: var(--radius-sm);
+    padding: 12px 16px;
+    margin-top: 4px;
+  }
+  .total-check span { font-size: 14px; font-weight: 800; color: var(--text2); }
+  .total-check .total-num { font-family: 'Space Mono', monospace; font-size: 16px; font-weight: 700; }
+  .total-check .total-num.ok { color: var(--accent3); }
+  .total-check .total-num.over { color: var(--accent2); }
+
+  .add-session-btn {
+    width: 100%;
+    padding: 12px;
+    background: rgba(108,99,255,0.1);
+    border: 2px dashed rgba(108,99,255,0.4);
+    border-radius: var(--radius-sm);
+    color: #a9a4ff;
+    font-family: 'Nunito', sans-serif;
+    font-size: 14px;
+    font-weight: 800;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .add-session-btn:hover { background: rgba(108,99,255,0.2); }
+
+  /* Celebration overlay */
+  .celebrate {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background: rgba(10,10,20,0.85);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 32px;
+  }
+  .celebrate.show { display: flex; }
+  .celebrate-emoji { font-size: 80px; animation: spin 1s ease; }
+  @keyframes spin { from { transform: rotate(-20deg) scale(0.5); } to { transform: rotate(0) scale(1); } }
+  .celebrate h2 { font-size: 36px; font-weight: 900; color: var(--accent3); margin: 16px 0 8px; }
+  .celebrate p { font-size: 18px; color: var(--text2); margin-bottom: 28px; font-weight: 600; }
+
+  /* Alert sound indicator */
+  .mute-btn {
+    position: fixed;
+    top: 16px;
+    right: 16px;
+    background: var(--surface2);
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    font-size: 18px;
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10;
+    transition: transform 0.1s;
+  }
+  .mute-btn:hover { transform: scale(1.1); }
+
+  @media (max-width: 480px) {
+    .time-display { font-size: 40px; }
+    .ring-svg { width: 200px; height: 200px; }
+    .header h1 { font-size: 28px; }
+  }
+</style>
+</head>
+<body>
+
+<button class="mute-btn" id="muteBtn" title="Toggle sound">🔔</button>
+
+<div class="container">
+
+  <!-- HEADER -->
+  <div class="header">
+    <span class="header-emoji">🚀</span>
+    <h1>¡Tiempo de Pantalla!</h1>
+    <p>80 minutos de diversión digital, ¡a tu manera!</p>
+  </div>
+
+  <!-- TIMER CARD -->
+  <div class="timer-card">
+    <div class="progress-ring-wrap">
+      <svg class="ring-svg" id="ringSvg" width="220" height="220" viewBox="0 0 220 220">
+        <circle class="ring-bg" cx="110" cy="110" r="96"/>
+        <circle class="ring-progress" id="ringProgress" cx="110" cy="110" r="96"
+          stroke="#6c63ff"
+          stroke-dasharray="603.19"
+          stroke-dashoffset="0"/>
+      </svg>
+      <div class="ring-text">
+        <div class="time-display" id="timeDisplay">00:00</div>
+        <div class="session-label" id="sessionLabel">¡Listo para empezar!</div>
+      </div>
+    </div>
+    <div class="controls" id="mainControls">
+      <button class="btn btn-success" id="startBtn" onclick="startSession()">▶ Iniciar</button>
+      <button class="btn btn-ghost" id="pauseBtn" onclick="togglePause()" disabled>⏸ Pausar</button>
+      <button class="btn btn-ghost" id="skipBtn" onclick="skipSession()" disabled>⏭ Saltar</button>
+      <button class="btn btn-danger" id="stopBtn" onclick="stopSession()" disabled>⏹ Detener</button>
+    </div>
+    <div class="controls" style="margin-bottom:0">
+      <button class="btn btn-danger" id="resetBtn" onclick="resetAll()" style="font-size:14px;padding:10px 22px">↺ Reiniciar día</button>
+    </div>
+  </div>
+
+  <!-- DAILY BUDGET -->
+  <div class="budget-card">
+    <div class="budget-header">
+      <span>📅 Presupuesto de hoy</span>
+      <span id="budgetLabel">80:00 left</span>
+    </div>
+    <div class="budget-bar-bg">
+      <div class="budget-bar-fill" id="budgetBar" style="width:100%"></div>
+    </div>
+  </div>
+
+  <!-- SESSIONS LIST -->
+  <div class="sessions-card">
+    <h2>🎮 Sesiones de hoy</h2>
+    <p class="subtitle">¡Configura cómo usar tus 80 minutos y presiona Iniciar!</p>
+    <div class="sessions-list" id="sessionsList"></div>
+  </div>
+
+  <!-- SESSION EDITOR -->
+  <div class="edit-card">
+    <h2>✏️ Crea tus sesiones</h2>
+    <div class="session-builder" id="sessionBuilder"></div>
+    <div class="total-check">
+      <span>Total de minutos</span>
+      <span class="total-num" id="totalMinutes">0 / 80</span>
+    </div>
+    <br>
+    <button class="add-session-btn" onclick="addSession()">+ Agregar otra sesión</button>
+    <br><br>
+    <button class="btn btn-primary" style="width:100%" onclick="applySessions()">✓ Guardar y aplicar sesiones</button>
+  </div>
+
+</div>
+
+<!-- CELEBRATION -->
+<div class="celebrate" id="celebrateEl">
+  <div class="celebrate-emoji" id="celebrateEmoji">🎉</div>
+  <h2 id="celebrateTitle">Session done!</h2>
+  <p id="celebrateMsg">Great job! Take a little break.</p>
+  <button class="btn btn-primary" onclick="dismissCelebrate()">Continuar ▶</button>
+</div>
+
+<script>
+const TOTAL_SECS = 80 * 60;
+const CIRCUMFERENCE = 2 * Math.PI * 96;
+
+const DEFAULT_SESSIONS = [
+  { name: 'YouTube', icon: '📺', mins: 20 },
+  { name: 'Videojuegos', icon: '🎮', mins: 30 },
+  { name: 'Tiempo creativo', icon: '🎨', mins: 20 },
+  { name: 'Libre elección', icon: '⭐', mins: 10 },
+];
+
+const EMOJIS = ['📺','🎮','🎨','📚','🎵','⭐','🏆','🤖','🦁','🚀','🎯','🧩','🌟','🎪','🍕'];
+
+let sessions = [];
+let currentSession = 0;
+let timer = null;
+let elapsed = 0; // elapsed within current session
+let totalUsed = 0; // total seconds used today
+let running = false;
+let muted = false;
+let dayDone = false;
+
+// AudioContext for beeps
+let audioCtx = null;
+function getCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+function beep(freq, dur, vol=0.3) {
+  if (muted) return;
+  try {
+    const ctx = getCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain); gain.connect(ctx.destination);
+    osc.frequency.value = freq;
+    osc.type = 'sine';
+    gain.gain.setValueAtTime(vol, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + dur);
+    osc.start(ctx.currentTime);
+    osc.stop(ctx.currentTime + dur);
+  } catch(e) {}
+}
+function playSuccess() {
+  beep(523, 0.15); setTimeout(()=>beep(659, 0.15), 150); setTimeout(()=>beep(784, 0.3), 300);
+}
+function playWarning() {
+  beep(440, 0.1); setTimeout(()=>beep(440, 0.1), 200);
+}
+function playDone() {
+  [0,150,300,500].forEach((t,i)=>setTimeout(()=>beep([523,659,784,1047][i], 0.2, 0.4), t));
+}
+
+// INIT
+window.addEventListener('DOMContentLoaded', () => {
+  buildEditor(DEFAULT_SESSIONS.map(s=>({...s})));
+  updateEditorTotal();
+  applySessions();
+});
+
+function buildEditor(data) {
+  const builder = document.getElementById('sessionBuilder');
+  builder.innerHTML = '';
+  data.forEach((s, i) => addEditorRow(s, i));
+}
+
+function addEditorRow(s, i) {
+  const builder = document.getElementById('sessionBuilder');
+  const row = document.createElement('div');
+  row.className = 'builder-row';
+  row.dataset.index = i;
+  row.innerHTML = `
+    <button class="icon-btn" onclick="cycleEmoji(${i})" title="Cambiar ícono">${s.icon}</button>
+    <input class="builder-input" type="text" value="${s.name}" placeholder="Nombre de sesión"
+      oninput="updateSession(${i},'name',this.value)">
+    <input class="mins-input" type="number" min="1" max="80" value="${s.mins}"
+      oninput="updateSession(${i},'mins',+this.value);updateEditorTotal()">
+    <span class="mins-label">min</span>
+    <button class="icon-btn" onclick="removeRow(${i})" title="Eliminar">❌</button>
+  `;
+  builder.appendChild(row);
+}
+
+let editorData = DEFAULT_SESSIONS.map(s=>({...s}));
+
+function updateSession(i, key, val) {
+  editorData[i][key] = val;
+  updateEditorTotal();
+}
+
+function cycleEmoji(i) {
+  const cur = editorData[i].icon;
+  const idx = EMOJIS.indexOf(cur);
+  editorData[i].icon = EMOJIS[(idx + 1) % EMOJIS.length];
+  rebuildEditorRows();
+}
+
+function removeRow(i) {
+  editorData.splice(i, 1);
+  rebuildEditorRows();
+  updateEditorTotal();
+}
+
+function addSession() {
+  editorData.push({ name: 'Nueva sesión', icon: '⭐', mins: 10 });
+  rebuildEditorRows();
+  updateEditorTotal();
+}
+
+function rebuildEditorRows() {
+  const builder = document.getElementById('sessionBuilder');
+  builder.innerHTML = '';
+  editorData.forEach((s, i) => addEditorRow(s, i));
+}
+
+function updateEditorTotal() {
+  // Sync mins from inputs
+  document.querySelectorAll('.mins-input').forEach((inp, i) => {
+    if (editorData[i]) editorData[i].mins = +inp.value || 0;
+  });
+  const total = editorData.reduce((s,x)=>s+(+x.mins||0), 0);
+  const el = document.getElementById('totalMinutes');
+  el.textContent = `${total} / 80`;
+  el.className = 'total-num ' + (total > 80 ? 'over' : 'ok');
+}
+
+function applySessions() {
+  updateEditorTotal();
+  const total = editorData.reduce((s,x)=>s+(+x.mins||0), 0);
+  if (total > 80) { alert(`El total es ${total} min — ¡mantenlo en 80 o menos! ✂️`); return; }
+  if (editorData.length === 0) { alert('¡Agrega al menos una sesión!'); return; }
+  sessions = editorData.map(s => ({...s, secs: s.mins * 60, done: false}));
+  currentSession = 0;
+  elapsed = 0;
+  totalUsed = 0;
+  running = false;
+  dayDone = false;
+  clearInterval(timer);
+  renderSessions();
+  updateTimerDisplay();
+  updateBudget();
+  setControls();
+}
+
+function renderSessions() {
+  const list = document.getElementById('sessionsList');
+  list.innerHTML = '';
+  sessions.forEach((s, i) => {
+    const div = document.createElement('div');
+    div.className = 'session-item' +
+      (i === currentSession && !dayDone ? ' active-session' : '') +
+      (s.done ? ' done-session' : '');
+    let statusText = 'pendiente', statusClass = 'status-pending';
+    if (s.done) { statusText = '✓ listo'; statusClass = 'status-done'; }
+    else if (i === currentSession && !dayDone) { statusText = '● ahora'; statusClass = 'status-active'; }
+    div.innerHTML = `
+      <div class="session-icon">${s.icon}</div>
+      <div class="session-info">
+        <div class="session-name">${s.name}</div>
+        <div class="session-mins">${s.mins} minutos</div>
+      </div>
+      <span class="session-status ${statusClass}">${statusText}</span>
+    `;
+    list.appendChild(div);
+  });
+}
+
+function updateTimerDisplay() {
+  if (dayDone) {
+    document.getElementById('timeDisplay').textContent = '00:00';
+    document.getElementById('sessionLabel').textContent = '🎉 ¡Terminamos por hoy!';
+    document.getElementById('timeDisplay').className = 'time-display';
+    setRing(0, '#43e97b');
+    return;
+  }
+  if (sessions.length === 0) return;
+  const s = sessions[currentSession];
+  const remaining = s.secs - elapsed;
+  document.getElementById('timeDisplay').textContent = formatTime(Math.max(0, remaining));
+  document.getElementById('sessionLabel').textContent = `${s.icon} ${s.name}`;
+
+  const pct = elapsed / s.secs;
+  const color = remaining <= 60 ? '#ff6584' : remaining <= 120 ? '#f9ca24' : '#6c63ff';
+  setRing(pct, color);
+
+  const td = document.getElementById('timeDisplay');
+  td.className = 'time-display' + (remaining <= 60 ? ' danger' : remaining <= 120 ? ' warning' : '');
+}
+
+function setRing(pct, color) {
+  const ring = document.getElementById('ringProgress');
+  ring.style.strokeDashoffset = CIRCUMFERENCE * pct;
+  ring.style.stroke = color;
+}
+
+function updateBudget() {
+  const remaining = TOTAL_SECS - totalUsed - elapsed;
+  const pct = Math.max(0, remaining / TOTAL_SECS) * 100;
+  const bar = document.getElementById('budgetBar');
+  bar.style.width = pct + '%';
+  bar.className = 'budget-bar-fill' + (pct < 25 ? ' low' : '');
+  document.getElementById('budgetLabel').textContent = formatTime(Math.max(0, remaining)) + ' restantes';
+}
+
+function formatTime(secs) {
+  const m = Math.floor(secs / 60).toString().padStart(2, '0');
+  const s = Math.floor(secs % 60).toString().padStart(2, '0');
+  return `${m}:${s}`;
+}
+
+function startSession() {
+  if (sessions.length === 0 || dayDone) return;
+  running = true;
+  timer = setInterval(tick, 1000);
+  setControls();
+}
+
+function tick() {
+  elapsed++;
+  totalUsed++;
+  const s = sessions[currentSession];
+  const remaining = s.secs - elapsed;
+
+  if (remaining === 60) playWarning();
+  if (remaining === 30) playWarning();
+
+  if (elapsed >= s.secs) {
+    // Session complete
+    sessions[currentSession].done = true;
+    clearInterval(timer);
+    running = false;
+    playSuccess();
+    const isLast = currentSession === sessions.length - 1;
+    if (isLast) {
+      dayDone = true;
+      elapsed = 0;
+      updateTimerDisplay();
+      updateBudget();
+      renderSessions();
+      setControls();
+      showCelebrate(true);
+      playDone();
+    } else {
+      showCelebrate(false);
+      elapsed = 0;
+      currentSession++;
+      updateTimerDisplay();
+      updateBudget();
+      renderSessions();
+      setControls();
+    }
+    return;
+  }
+
+  updateTimerDisplay();
+  updateBudget();
+}
+
+function stopSession() {
+  if (!confirm('¿Detener la sesión actual? El tiempo usado se perderá.')) return;
+  clearInterval(timer);
+  running = false;
+  elapsed = 0;
+  totalUsed = Math.max(0, totalUsed - elapsed);
+  updateTimerDisplay();
+  updateBudget();
+  setControls();
+}
+
+function togglePause() {
+  if (running) {
+    clearInterval(timer);
+    running = false;
+    document.getElementById('pauseBtn').textContent = '▶ Continuar';
+  } else {
+    timer = setInterval(tick, 1000);
+    running = true;
+    document.getElementById('pauseBtn').textContent = '⏸ Pausar';
+  }
+}
+
+function skipSession() {
+  if (!confirm('¿Saltar esta sesión? El tiempo no contará como usado.')) return;
+  clearInterval(timer);
+  running = false;
+  sessions[currentSession].done = true;
+  const isLast = currentSession === sessions.length - 1;
+  elapsed = 0;
+  if (isLast) {
+    dayDone = true;
+  } else {
+    currentSession++;
+  }
+  updateTimerDisplay();
+  updateBudget();
+  renderSessions();
+  setControls();
+}
+
+function resetAll() {
+  if (running && !confirm('¿Reiniciar todo el progreso de hoy?')) return;
+  clearInterval(timer);
+  sessions.forEach(s => s.done = false);
+  currentSession = 0;
+  elapsed = 0;
+  totalUsed = 0;
+  running = false;
+  dayDone = false;
+  updateTimerDisplay();
+  updateBudget();
+  renderSessions();
+  setControls();
+}
+
+function setControls() {
+  const startBtn = document.getElementById('startBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const skipBtn = document.getElementById('skipBtn');
+  const stopBtn = document.getElementById('stopBtn');
+  if (dayDone) {
+    startBtn.disabled = true;
+    pauseBtn.disabled = true;
+    skipBtn.disabled = true;
+    stopBtn.disabled = true;
+    return;
+  }
+  startBtn.disabled = running;
+  pauseBtn.disabled = !running && elapsed === 0;
+  skipBtn.disabled = !running && elapsed === 0;
+  stopBtn.disabled = elapsed === 0;
+  if (!running) pauseBtn.textContent = elapsed > 0 ? '▶ Continuar' : '⏸ Pausar';
+}
+
+function showCelebrate(isEnd) {
+  const el = document.getElementById('celebrateEl');
+  const emoji = document.getElementById('celebrateEmoji');
+  const title = document.getElementById('celebrateTitle');
+  const msg = document.getElementById('celebrateMsg');
+  if (isEnd) {
+    emoji.textContent = '🏆';
+    title.textContent = '¡Terminaste el día!';
+    msg.textContent = '¡Increíble! Usaste todo tu tiempo de pantalla. ¡Muy bien hecho!';
+  } else {
+    const s = sessions[currentSession - 1];
+    emoji.textContent = s ? s.icon : '🎉';
+    title.textContent = `¡${s ? s.name : 'Sesión'} completada!`;
+    const next = sessions[currentSession];
+    msg.textContent = next ? `A continuación: ${next.icon} ${next.name} (${next.mins} min)` : '';
+  }
+  el.classList.add('show');
+}
+
+function dismissCelebrate() {
+  document.getElementById('celebrateEl').classList.remove('show');
+  if (!dayDone) { /* ready for next */ }
+}
+
+document.getElementById('muteBtn').addEventListener('click', () => {
+  muted = !muted;
+  document.getElementById('muteBtn').textContent = muted ? '🔕' : '🔔';
+});
+</script>
+</body>
+</html>
